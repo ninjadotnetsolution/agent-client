@@ -23,8 +23,8 @@ namespace YerraAgent
         public System.Threading.Timer checkAppStateTimer;
         public List<IntPtr> preProcesses;                                   //previous process list to determine if the process list is changed.
         public string baseURL = "https://localhost:44398";                  //server URL.
-        public string companyName = "APPLE";                                //company name of the agent.
-        public string companyID = "8854-6877-3518";
+        public string companyName = "company-one";                                //company name of the agent.
+        public string companyID = "9720-5079-8501";
         static string baseDir = @"C:/yerra";                                //directory to save agent app.
         static int actionDuration = 15000;                                  //duration for hide/unhide action timer(agent app send the request of current process list once per this period)
         static int checkStateDuration = 6000;                               //duration to check stop/start/uninstall status of agent app on the server.
