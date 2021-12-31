@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "a49c9534-638d-4a65-8cab-9fa64341a5dd": {
+      "ProjectGuid": "a49c9534-638d-4a65-8cab-9fa64341a5dd",
+      "DisplayName": "YerraPro",
+      "ColorIndex": 0
+    },
+    "0f4c00c9-03cd-4571-b06c-dedd55e503e4": {
+      "ProjectGuid": "0f4c00c9-03cd-4571-b06c-dedd55e503e4",
+      "DisplayName": "YerraAgent",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}

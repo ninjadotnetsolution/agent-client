@@ -19,3 +19,15 @@ D:\Work\C#\Yerra\agent-master\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.
 D:\Work\C#\Yerra\agent-master\YerraAgent\YerraAgent\obj\Debug\YerraAgent.AgentWindow.resources
 D:\Work\C#\Yerra\agent-master\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.GenerateResource.cache
 D:\Work\C#\Yerra\agent-master\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.Fody.CopyLocal.cache
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\bin\Debug\YerraAgent.exe.config
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\bin\Debug\YerraAgent.exe
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\bin\Debug\YerraAgent.pdb
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\bin\Debug\Newtonsoft.Json.xml
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.AssemblyReference.cache
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.AgentWindow.resources
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.GenerateResource.cache
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.CoreCompileInputs.cache
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.Fody.CopyLocal.cache
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.csproj.CopyComplete
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.exe
+D:\Work\C#\Yerra\agent-client\YerraAgent\YerraAgent\obj\Debug\YerraAgent.pdb

@@ -181,13 +181,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentWindow.cs">
+    <Compile Include="Common\AgentWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="AgentWindow.Designer.cs">
+    <Compile Include="Common\AgentWindow.Designer.cs">
       <DependentUpon>AgentWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Helpers.cs" />
+    <Compile Include="Common\Helpers.cs" />
+    <Compile Include="Models\ActionResult.cs" />
+    <Compile Include="Models\Agent.cs" />
+    <Compile Include="Models\BaseModel.cs" />
+    <Compile Include="Models\ProcessInfo.cs" />
+    <Compile Include="Models\SystemInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -196,7 +201,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="AgentWindow.resx">
+    <EmbeddedResource Include="Common\AgentWindow.resx">
       <DependentUpon>AgentWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="logo.ico" />

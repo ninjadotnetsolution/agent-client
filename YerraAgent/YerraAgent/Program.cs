@@ -18,19 +18,18 @@ namespace YerraAgent
 {
     class Program
     {
-
         protected Agent user;
         public System.Threading.Timer actionTimer;
         public System.Threading.Timer checkAppStateTimer;
-        public List<IntPtr> preProcesses;
-        public string password = "E546C8DF278CD5931069B522E695D222";
-        public string domain = "https://localhost:44398";
-        public string companyName = "APPLE";
-        static string baseDir = @"C:/yerra";
-        static int actionDuration = 15000;
-        static int checkStateDuration = 6000;
-        public HttpClient _client;
-        private NotifyIcon trayIcon;
+        public List<IntPtr> preProcesses;                                   //previous process list to determine if the process list is changed.
+        public string baseURL = "https://localhost:44398";                  //server URL.
+        public string companyName = "APPLE";                                //company name of the agent.
+        public string companyID = "8854-6877-3518";
+        static string baseDir = @"C:/yerra";                                //directory to save agent app.
+        static int actionDuration = 15000;                                  //duration for hide/unhide action timer(agent app send the request of current process list once per this period)
+        static int checkStateDuration = 6000;                               //duration to check stop/start/uninstall status of agent app on the server.
+        public HttpClient _client;                                          //instance of REST API to communicate with the server.
+        private NotifyIcon trayIcon;                                        //instance of Tray icon to show agent ID.
 
         static void Main(string[] args)
         {
@@ -49,19 +48,19 @@ namespace YerraAgent
         {
             try
             {
+                //initialize of tray icon instance.
                 Stream st;
                 System.Reflection.Assembly a = System.Reflection.Assembly.GetExecutingAssembly();
                 st = a.GetManifestResourceStream("YerraAgent.logo.ico");
-
                 this.trayIcon = new NotifyIcon();
                 this.trayIcon.Icon = new System.Drawing.Icon(st);
                 this.trayIcon.Text = "Yerra Agent";
-
                 this.trayIcon.Click += new EventHandler(m_notifyIcon_Click);
                 this.trayIcon.Visible = true;
 
+                //initialize of HTTP request instance.
                 _client = new HttpClient();
-                _client.BaseAddress = new Uri(domain);
+                _client.BaseAddress = new Uri(baseURL);
                 _client.DefaultRequestHeaders.Accept.Clear();
                 _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 generateAccount();
@@ -72,6 +71,7 @@ namespace YerraAgent
             }
         }
 
+        //Show a dialog to display agent ID when click the tray icon.
         void m_notifyIcon_Click(object sender, EventArgs e)
         {
             var agentWindow = new AgentWindow();
@@ -86,6 +86,7 @@ namespace YerraAgent
             turnOff();
         }
 
+        //Record all error list of agent app in logger.txt.
         static void logger(string log)
         {
             try
@@ -118,6 +119,7 @@ namespace YerraAgent
             
         }
        
+        //execute the hide/unhide action using process name.
         public void action(string command, string processName)
         {
             try
@@ -139,12 +141,13 @@ namespace YerraAgent
                 logger(evt.Message.ToString());
             }
         }
-
+        
+        //call once per variable actionDuration.
+        //send current process list and execute hide/unhide action.
         public async void sendRequest()
         {
             try
             {
-
                 RegistryKey key = Registry.CurrentUser.OpenSubKey("AgentAppInformation", true);
                 if (key == null) return;
                 var isInstalled = key.GetValue("IsInstalled").ToString();
@@ -205,7 +208,6 @@ namespace YerraAgent
                             }
                             action(p.Action ? "-h" : "-u", p.ProcessName);
                         }
-
                     }
                     processStatus[p.ProcessName] = p.Action;
                 }
@@ -221,14 +223,15 @@ namespace YerraAgent
             }
         }
 
+        //get all system informations and send these to server.
         public async void generateAccount()
         {
             try
             {
                 this.user = new Agent();
-                this.user.Domain = this.domain;
                 this.user.CompanyName = this.companyName;
-
+                this.user.CompanyId = this.companyID;
+                this.user.SystemInfo.HostName = Dns.GetHostName().ToString();
                 var host = Dns.GetHostEntry(Dns.GetHostName());
 
                 foreach (var ip in host.AddressList)
@@ -242,17 +245,39 @@ namespace YerraAgent
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem");
                 foreach (ManagementObject os in searcher.Get())
                 {
-                    this.user.WinVersion = os["Caption"].ToString();
+                    
+                    this.user.SystemInfo.OSName = os["Caption"].ToString();
                     break;
                 }
 
-                this.user.SystemName = Environment.UserName.ToString();
+               
+
+                this.user.SystemInfo.OSVersion = Environment.OSVersion.ToString();
+
+
+                List<string> installedProgs = new List<string>();
+
+                string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
+                {
+                    foreach (string subkey_name in key.GetSubKeyNames())
+                    {
+                        using (RegistryKey subkey = key.OpenSubKey(subkey_name))
+                        {
+                            //installedProgs = subkey.GetSubKeyNames().ToList();
+                            //installedProgs.Add(subkey.GetValue("DisplayName").ToString());
+                        }
+                    }
+                }
+
+                this.user.SystemInfo.RegisteredOwner = Environment.UserName.ToString();
 
                 this.user.MachineID = (
                             from nic in NetworkInterface.GetAllNetworkInterfaces()
                             where nic.OperationalStatus == OperationalStatus.Up
                             select nic.GetPhysicalAddress().ToString()
                         ).FirstOrDefault();
+
                 Guid guid = Guid.NewGuid();
 
                 string[] splitedIds = { "", "", "" };
@@ -279,6 +304,7 @@ namespace YerraAgent
                 actionTimer = new System.Threading.Timer((Object param) =>
                 {
                     sendRequest();
+
                 }, null, 5000, actionDuration);
 
                 checkAppStateTimer = new System.Threading.Timer((Object param) =>
@@ -294,6 +320,7 @@ namespace YerraAgent
             }
         }
 
+        //check agent app status(stop/start/uninstall)
         async public void checkAppState()
         {
             try
@@ -337,11 +364,13 @@ namespace YerraAgent
             
         }
 
+        //send a request when turn off agent app.
         async public void turnOff()
         {
             await _client.GetAsync($"api/agent/turnoff/{this.user.Id}");
         }
 
+        //modify agent app status base on server status.
         public void setAppState(int state)
         {
             RegistryKey key = Registry.CurrentUser.OpenSubKey("AgentAppInformation", true);
@@ -354,66 +383,7 @@ namespace YerraAgent
             key.SetValue("IsInstalled", state);
         }
 
-        public string[] excludesProcesses = { "Idle.exe", "SystemSettings.exe", "TextInputHost.exe", "ApplicationFrameHost.exe", "smBootTime.exe", "Microsoft.Photos.exe", "Monitor.exe", "ScriptedSandbox64.exe" };
+        public string[] excludesProcesses = { "Idle.exe", "SystemSettings.exe", "TextInputHost.exe", "ApplicationFrameHost.exe", "smBootTime.exe", "Microsoft.Photos.exe", "Monitor.exe", "ScriptedSandbox64.exe", "explorer.exe", "cmd.exe" };
 
     }
-
-    public class Agent
-    {
-        public string Id { get; set; }
-        public string SystemName { get; set; }
-        public string WinVersion { get; set; }
-        public string IpAddress { get; set; }
-        public string MachineID { get; set; }
-        public long CompanyId { get; set; }
-        public string CompanyName { get; set; }
-        public string Domain { get; set; }
-        public int Status { get; set; }
-
-        public ICollection<ProcessInfo> ProcesseInfos { get; set; }
-    }
-
-    public class ProcessInfo
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int Target { get; set; }
-        public bool IsRead { get; set; }
-        public bool Action { get; set; }
-        public Agent Agent { get; set; }
-        public string AgentId { get; set; }
-
-        public ProcessInfo(Agent agent, string name)
-        {
-            this.Agent = agent;
-            this.AgentId = agent.Id;
-            this.Name = name;
-            this.IsRead = true;
-            this.Target = 0;
-            this.Action = false;
-        }
-    }
-
-    public class ActionResult
-    {
-        public string ProcessName { get; set; }
-        public bool Action { get; set; }
-    }
-
-    public class BaseModel
-    {
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    public static class NativeImports
-    {
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-    }
-
 }
