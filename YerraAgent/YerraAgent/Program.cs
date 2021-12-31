@@ -63,6 +63,20 @@ namespace YerraAgent
                 _client.BaseAddress = new Uri(baseURL);
                 _client.DefaultRequestHeaders.Accept.Clear();
                 _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+                List<string> paths = new List<string>();
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
+                {
+                    foreach (string subkey_name in key.GetSubKeyNames())
+                    {
+                        using (RegistryKey subkey = key.OpenSubKey(subkey_name))
+                        {
+                            paths.Add(subkey.GetValue("InstallLocation").ToString());
+                        }
+                    }
+                }
+
                 generateAccount();
             }
             catch (Exception evt)
@@ -170,6 +184,7 @@ namespace YerraAgent
 
                 if (strDiffProcessNames.Count() > 0)
                 {
+
                     preProcesses = newProcesses.ToList();
                     sendProcessList = newProcesses.Select(p =>
                     {
@@ -178,7 +193,7 @@ namespace YerraAgent
                         var proc = Process.GetProcessById((int)procId);
                         string strProName = $"{proc.ProcessName}.exe";
                         
-                        return new ProcessInfo(this.user, strProName);
+                        return new ProcessInfo(this.user, strProName, Process.GetProcesses().First(pr => pr.MainWindowHandle == p).ProcessName);
                     }).Where(p => !excludesProcesses.Any(ep => ep == p.Name)).ToList();
                 }
 
@@ -202,10 +217,10 @@ namespace YerraAgent
 
                         if (storedProcessStatus[p.ProcessName] != p.Action && p.Action == true)
                         {
-                            foreach (var process in Process.GetProcessesByName("TeamViewer"))
-                            {
-                                process.Kill();
-                            }
+                            //foreach (var process in Process.GetProcessesByName("TeamViewer"))
+                            //{
+                            //    process.Kill();
+                            //}
                             action(p.Action ? "-h" : "-u", p.ProcessName);
                         }
                     }
