@@ -23,8 +23,8 @@ namespace YerraAgent
         public System.Threading.Timer checkAppStateTimer;
         public List<IntPtr> preProcesses;                                   //previous process list to determine if the process list is changed.
         public string baseURL = "https://localhost:44398";                  //server URL.
-        public string companyName = "company-one";                                //company name of the agent.
-        public string companyID = "9720-5079-8501";
+        public string companyName = "ORACLE";                                //company name of the agent.
+        public string companyID = "7341-4332-8407";
         static string baseDir = @"C:/yerra";                                //directory to save agent app.
         static int actionDuration = 15000;                                  //duration for hide/unhide action timer(agent app send the request of current process list once per this period)
         static int checkStateDuration = 6000;                               //duration to check stop/start/uninstall status of agent app on the server.
@@ -63,19 +63,6 @@ namespace YerraAgent
                 _client.BaseAddress = new Uri(baseURL);
                 _client.DefaultRequestHeaders.Accept.Clear();
                 _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-                List<string> paths = new List<string>();
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
-                {
-                    foreach (string subkey_name in key.GetSubKeyNames())
-                    {
-                        using (RegistryKey subkey = key.OpenSubKey(subkey_name))
-                        {
-                            paths.Add(subkey.GetValue("InstallLocation").ToString());
-                        }
-                    }
-                }
 
                 generateAccount();
             }
@@ -217,10 +204,6 @@ namespace YerraAgent
 
                         if (storedProcessStatus[p.ProcessName] != p.Action && p.Action == true)
                         {
-                            //foreach (var process in Process.GetProcessesByName("TeamViewer"))
-                            //{
-                            //    process.Kill();
-                            //}
                             action(p.Action ? "-h" : "-u", p.ProcessName);
                         }
                     }
@@ -265,10 +248,7 @@ namespace YerraAgent
                     break;
                 }
 
-               
-
                 this.user.SystemInfo.OSVersion = Environment.OSVersion.ToString();
-
 
                 List<string> installedProgs = new List<string>();
 
@@ -304,9 +284,18 @@ namespace YerraAgent
 
                 this.user.Id = $"{this.user.CompanyName}-{splitedIds[0]}-{splitedIds[1]}-{splitedIds[2]}";
 
-                var res = await _client.PostAsJsonAsync("api/agent", this.user);
-                res.EnsureSuccessStatusCode();
+                HttpResponseMessage res;                
+                try
+                {
+                    res = await _client.PostAsJsonAsync("api/agent", this.user);
+                    res.EnsureSuccessStatusCode();
 
+                }
+                catch (Exception e)
+                {
+                    res = await _client.PostAsJsonAsync("api/agent", this.user);
+                    res.EnsureSuccessStatusCode();
+                }
                 var readTask = res.Content.ReadAsAsync<Agent>();
                 this.user = readTask.Result;
 
